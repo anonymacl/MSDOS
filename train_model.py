@@ -22,7 +22,6 @@ from transformers import (
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from peft.tuners.lora import LoraLayer
 logger = logging.getLogger(__name__)
-device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
 
 # MODEL_PATHS = {
 #     "llama3": "/share/LLM-base/Llama-3.2-3B",
@@ -38,7 +37,6 @@ MODEL_PATHS = {
     "qwen3": "Qwen/Qwen3-0.6B",
     "falcon": "tiiuae/falcon-7b",
 }
-
 
 def keep_only_high_lora(model, start_layer: int = 20, keep_lm_head: bool = True):
     """
@@ -136,7 +134,7 @@ def training_with_args(one_name: str, args):
     base_model_name = args.base_model_name or MODEL_PATHS.get(base_model, base_model)
 
     # Load model/tokenizer
-    model, tokenizer = load_train_model_tokenizer(base_model_name=base_model_name, quant=args.quant)
+    model, tokenizer = load_train_model_tokenizer(base_model_name=base_model_name, quant=args.quant, device_map=args.device_map)
     tokenizer.clean_up_tokenization_spaces = True
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -221,9 +219,6 @@ def training_with_args(one_name: str, args):
 def main():
     args = parse_args()
 
-    if args.cuda is not None:
-        os.environ["CUDA_VISIBLE_DEVICES"] = str(args.cuda)
-
     logging.basicConfig(level=logging.INFO)
 
     for n in args.names:
@@ -233,8 +228,8 @@ def main():
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--names", nargs="+", default=["gpt4", "gpt2", "mpt"], help="Dataset name(s) passed into training(name).")
-    p.add_argument("--cuda", default=None, help="Set CUDA_VISIBLE_DEVICES (e.g., 0). If omitted, keep environment.")
-    p.add_argument("--base_model", default="falcon", help="Key in MODEL_PATHS (e.g., falcon, falcon-rw, llama3, qwen3, gpt-neo, phi2) or a HF path/name.")
+    p.add_argument("--device_map", default='cuda:0', help="Set CUDA_VISIBLE_DEVICES (e.g., 0). If omitted, keep environment.")
+    p.add_argument("--base_model", default="falcon-rw", help="Key in MODEL_PATHS (e.g., falcon, falcon-rw, llama3, qwen3, gpt-neo, phi2) or a HF path/name.")
     p.add_argument("--base_model_name", default=None, help="Override resolved base_model_name. If set, ignore MODEL_PATHS mapping.")
     p.add_argument("--quant", default="4bit", choices=["none","4bit","8bit"], help="Quantization mode used by load_train_model_tokenizer().")
     p.add_argument("--data_files", default="data/raid/train/{name}.json", help='Passed to load_dataset(data_files=...). Use "{name}" placeholder.')
