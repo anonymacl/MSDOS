@@ -24,6 +24,22 @@ from peft.tuners.lora import LoraLayer
 logger = logging.getLogger(__name__)
 device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
 
+# MODEL_PATHS = {
+#     "llama3": "/share/LLM-base/Llama-3.2-3B",
+#     "phi2": "/share/LLM-base/phi-2",
+#     "falcon-rw": "/share/LLM-base/falcon-rw-1b",
+#     "qwen3": "/share/LLM-base/Qwen3-0.6B-Base",
+#     "falcon": "/share/LLM-base/falcon-7b",
+# }
+MODEL_PATHS = {
+    "llama3": "meta-llama/Llama-3.2-3B",
+    "phi2": "microsoft/phi-2",
+    "falcon-rw": "tiiuae/falcon-rw-1b",
+    "qwen3": "Qwen/Qwen3-0.6B",
+    "falcon": "tiiuae/falcon-7b",
+}
+
+
 def keep_only_high_lora(model, start_layer: int = 20, keep_lm_head: bool = True):
     """
     Only keep [start_layer, ...] LoRA(including Attention & MLP)
@@ -116,21 +132,6 @@ def load_train_model_tokenizer(
     return model, tokenizer
 
 def training_with_args(one_name: str, args):
-    # MODEL_PATHS = {
-    #     "llama3": "/share/LLM-base/Llama-3.2-3B",
-    #     "phi2": "/share/LLM-base/phi-2",
-    #     "falcon-rw": "/share/LLM-base/falcon-rw-1b",
-    #     "qwen3": "/share/LLM-base/Qwen3-0.6B-Base",
-    #     "falcon": "/share/LLM-base/falcon-7b",
-    # }
-    MODEL_PATHS = {
-        "llama3": "meta-llama/Llama-3.2-3B",
-        "phi2": "microsoft/phi-2",
-        "falcon-rw": "tiiuae/falcon-rw-1b",
-        "qwen3": "Qwen/Qwen3-0.6B",
-        "falcon": "tiiuae/falcon-7b",
-    }
-
     base_model = args.base_model
     base_model_name = args.base_model_name or MODEL_PATHS.get(base_model, base_model)
 
