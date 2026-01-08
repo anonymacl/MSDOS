@@ -92,15 +92,17 @@ python train_model.py \
   --names gpt4 gpt2 mpt \
   --base_model falcon \
   --data_files "data/.../{name}.json"    # if you want to train with other data
+  --device 'cuda:0' \
 ```
 
 ### 3. Detection
 
 ```text
 python run_detection.py \
-  --input_file data/test/.../xxx.json \
+  --data_files data/test/.../xxx.json \
   --base_model falcon-rw \
-  --style_adapters lora/falcon-rw \
+  --lora_dir lora/falcon-rw \
+  --device 'cuda:0' \
   --rpc 1.1
 ```
 
